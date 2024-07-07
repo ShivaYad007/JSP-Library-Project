@@ -1,15 +1,14 @@
 <%@page import="com.ncet.lib.exception.CommonException"%>
 <%@page import="java.sql.SQLException"%>
-<%@page import="com.ncet.lib.service.AdminService"%>
 <%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
-<%@page import="com.ncet.lib.entity.Books"%>
+<%@page import="com.ncet.lib.service.AdminService"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Update Book Result</title>
+<title>Update Book</title>
  <style>
        input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -43,7 +42,7 @@ input::-webkit-inner-spin-button {
             font-weight: bold;
             display: block;
         }
-    input[type="number"] {
+      input[type="number"] {
             width: 92%;
             padding: 10px;
             font-size: 16px;
@@ -75,7 +74,7 @@ input::-webkit-inner-spin-button {
 <jsp:include page="Header.jsp"></jsp:include> 
  <div class="container-update">
         <h2>Update Book</h2>
-        <form action="UpdateBookResult.jsp" method="post">
+        <form action="UpdateBookQuantity.jsp" method="post">
            
             <div class="form-group half-width">
                 <label for="bid">Book Id:</label>
@@ -88,17 +87,17 @@ input::-webkit-inner-spin-button {
             </div>
           
             <button type="submit">Update</button>
-           
-        </form>
-              <%
-              if(request.getParameter("bid")!=null && request.getParameter("qty")!=null){
+            
+            <button type="button" onclick="location.href='AdminDashboard.jsp'">Back to Dashboard</button>
+            <%
+            if (request.getMethod().equalsIgnoreCase("POST")) {
             int bid=Integer.parseInt(request.getParameter("bid")); 
             int qty=Integer.parseInt(request.getParameter("qty"));
            
               String message = null;
               try {
                   AdminService adminService = new AdminServiceImpl();
-                  message = adminService.updateBookQuatnity(bid, qty);
+                  message = adminService.updateBookQuantity(bid, qty);
               } catch (ClassNotFoundException | SQLException | CommonException e) {
                   message = e.getMessage();
               }
@@ -106,8 +105,7 @@ input::-webkit-inner-spin-button {
               }
            
             %>
-         
-            <button type="button" onclick="location.href='AdminDashboard.jsp'">Back to Dashboard</button>
+        </form>
     </div>
 </body>
 </html>

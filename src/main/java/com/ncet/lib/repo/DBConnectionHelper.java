@@ -7,7 +7,7 @@ import java.util.ResourceBundle;
 
 public class DBConnectionHelper {
 	 public static Connection getConnection() throws ClassNotFoundException, SQLException {
-		 ResourceBundle rb = ResourceBundle.getBundle("library");
+		 ResourceBundle rb = ResourceBundle.getBundle("db");
 		 
 		 String driver=rb.getString("driver");
 		 String url=rb.getString("url");

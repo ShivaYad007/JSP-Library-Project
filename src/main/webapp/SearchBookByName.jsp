@@ -1,3 +1,9 @@
+<%@page import="com.ncet.lib.exception.CommonException"%>
+<%@page import="java.util.List"%>
+<%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
+<%@page import="com.ncet.lib.service.AdminService"%>
+<%@page import="com.ncet.lib.entity.Books"%>
+<%@page import="java.sql.SQLException"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 
 <!DOCTYPE html>
@@ -65,10 +71,15 @@
             margin-bottom: 20px;
         }
         table {
-            width: 100%;
+            width: 80%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            margin-left: auto;
+            margin-right: auto;
         }
+        #col-bid {
+	width: 20px;
+}
         table, th, td {
             border: 1px solid #ddd;
         }
@@ -86,7 +97,7 @@
 <jsp:include page="Header.jsp"></jsp:include>
     <div class="container-search">
         <h2>Search Book by Name</h2>
-        <form action="SearchBookByNameResult.jsp" method="post">
+        <form action="SearchBookByName.jsp" method="post">
             <label for="name">Book Name:</label>
             <input type="text" id="name" name="name" required>
             <button type="submit">Search</button>
@@ -106,6 +117,50 @@
 			<%
 		}
         %> 
-    </div>
+            </div>
+        <table>
+		<tr>
+			<th id="col-bid">BID</th>
+			<th>Name</th>
+			<th>Author</th>
+			<th>Edition</th>
+			<th>Department</th>
+			<th>Quantity</th>
+		</tr>
+	
+		<%
+              if(request.getParameter("name")!=null){
+            String name=request.getParameter("name"); 
+            	  
+              String message = null;
+              try {
+                  AdminService adminserv = new AdminServiceImpl();
+                  List<Books> books=adminserv.searchBookByName(name);
+                  %>
+                  <%
+		for(Books book: books){
+			%>
+		<tr> 
+				<td><%=book.getBookId() %> </td>
+				<td><%=book.getName() %> </td>
+				<td><%=book.getAuthor() %> </td>
+				<td><%=book.getEdition() %> </td>
+				<td><%=book.getDepartment() %> </td>
+				<td><%=book.getQuantity() %> </td>
+			</tr>
+			<%
+			}
+		%>
+			
+		<%
+              } catch (ClassNotFoundException | SQLException | CommonException e) {
+                  message = e.getMessage();
+                  out.println("<p style=\"text-align:center\">" + message + "</p>");
+              }
+             
+              }
+            %>
+	</table>
+
 </body>
 </html>

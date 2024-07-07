@@ -1,18 +1,24 @@
-<%@page import="com.ncet.lib.entity.Student"%>
-<%@page import="com.ncet.lib.utils.SendMail"%>
-<%@page import="com.ncet.lib.exception.CommonException"%>
+<%@page import="com.ncet.lib.utils.BookReturnedMail"%>
 <%@page import="java.time.LocalDate"%>
-<%@page import="java.sql.SQLException"%>
-<%@page import="com.ncet.lib.service.AdminService"%>
 <%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
+<%@page import="com.ncet.lib.service.AdminService"%>
+<%@page import="com.ncet.lib.entity.Student"%>
+<%@page import="com.ncet.lib.utils.BookIssuedMail"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="com.ncet.lib.exception.CommonException"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Update Book Transactions Result</title>
+<title>Return Book</title>
 <style>
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+	-webkit-appearance: none;
+	margin: 0;
+}
+
 .container-update {
 	width: 50%;
 	max-width: 600px;
@@ -46,22 +52,15 @@ label {
 	display: block;
 }
 
-input[type="number"],select
-	{
+input[type="number"], select {
 	width: 92%;
 	padding: 10px;
 	font-size: 16px;
 	border: 1px solid #ccc;
 	border-radius: 5px;
 }
-    .form-group option {
-            padding: 10px;
-            background-color: #fff;
-            color: #333;
-            font-size: 16px;
-        }
-input[type="date"]
-	{
+
+input[type="date"] {
 	width: 92%;
 	padding: 9px;
 	font-size: 16px;
@@ -96,8 +95,8 @@ button:hover {
 	<jsp:include page="Header.jsp"></jsp:include>
 	<div class="container-update">
 
-		<h2>Update Book Transactions</h2>
-		<form action="UpdateBookTransactionsResult.jsp" method="post">
+		<h2>Return Book</h2>
+		<form action="ReturnBook.jsp" method="post">
 
 			<div class="form-group half-width">
 				<label for="tid">Transaction Id:</label> <input type="number"
@@ -105,35 +104,43 @@ button:hover {
 			</div>
 
 			<div class="form-group half-width">
-				<label for="issuedDate">Issued On:</label> <input
-					type="date" id="issuedDate" name="issuedDate" required>
-			</div>
-			<div class="form-group half-width">
-				<label for="remarks">Ends On:</label> <select name="remarks"
+				<label for="remarks">Remarks:</label> <select name="remarks"
 					id="remarks">
-					<option value="ISSUED" selected>ISSUED</option>
+					<option value="RETURNED" selected>RETURNED</option>
 				</select>
 			</div>
 
-			<button type="submit">Update Transactions</button>
+			<button type="submit">Return Book</button>
+
+			<button type="button" onclick="location.href='AdminDashboard.jsp'">Back
+				to Dashboard</button>
+				
 		</form>
-		
-		<%
-              if(request.getParameter("tid")!=null && request.getParameter("remarks")!=null){
+				<%
+		    if (request.getMethod().equalsIgnoreCase("POST")) {
             int tid=Integer.parseInt(request.getParameter("tid")); 
-            LocalDate issued_on=LocalDate.parse(request.getParameter("issuedDate"));
             String remarks=request.getParameter("remarks");
               String message = null;
               try {
                   AdminService adminService = new AdminServiceImpl();
-                  message = adminService.updateBookTransactions(tid, issued_on, remarks);
+                  message = adminService.returnBook(tid, remarks);
+                  
               	try {
             		Student student= adminService.getStudentByTransId(tid);
-                    String emailSubject="Book Issued Successfully";
-                    String emailBody="Hello "+student.getName()+"\nYour requested Book with Trans Id "+tid+"Issued Successfully\nNote: Please return back before the ending date to avoid late fee!\nKeep learnig will make shining the world\nThank You !\nNational College of Engineering and Technology";
-              	SendMail.sendEmail(student.getGmail(),emailSubject, emailBody);
+                    String emailSubject="Book Returned Successfully";
+                    String name=null;
+                    if(student!=null){
+                    	 name=student.getName();
+                    }
+                    
+                    
+                    if(!message.equalsIgnoreCase("Transaction id <b>"+tid+"</b> already Updated") && !message.equalsIgnoreCase("Transaction id <b>"+tid+"</b> not found") )
+                    {
+                    	BookReturnedMail.sendEmail(student.getGmail(), emailSubject, name, tid);
+                    }
+                    
             	} catch (ClassNotFoundException | SQLException | CommonException e) {
-            		e.printStackTrace();
+            		message =e.getMessage();
             	}
           
               } catch (ClassNotFoundException | SQLException | CommonException e) {
@@ -143,8 +150,6 @@ button:hover {
               } 
            
             %>
-		<button type="button" onclick="location.href='AdminDashboard.jsp'">Back
-			to Dashboard</button>
 	</div>
 </body>
 </html>

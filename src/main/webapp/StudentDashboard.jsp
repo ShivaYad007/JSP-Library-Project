@@ -28,6 +28,9 @@ height: 480px;
 .container-dashboard .logout:hover {
 	background-color: #86C86A;
 }
+.container-dashboard nav ul li a:hover{
+color: #4E7800 
+}
 </style>
 </head>
 <body>

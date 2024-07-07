@@ -1,3 +1,8 @@
+<%@page import="java.sql.SQLException"%>
+<%@page import="com.ncet.lib.exception.CommonException"%>
+<%@page import="com.ncet.lib.service.AdminService"%>
+<%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
+<%@page import="com.ncet.lib.entity.Student"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -59,12 +64,29 @@
    <jsp:include page="Header.jsp"></jsp:include> 
     <div class="container-delete">
         <h2>Delete Student Library Account</h2>
-        <form action="DeleteStudentResult.jsp" method="post">
+        <form action="DeleteStudent.jsp" method="post">
             <label for="rollno">Student Rollno:</label>
             <input type="text" id="rollno" name="rollno" required>
             <button type="submit">Delete</button>
             <button type="button" class="btn-dashboard" onclick="location.href='AdminDashboard.jsp'">Back to Dashboard</button>
         </form>
+           <%
+           if (request.getMethod().equalsIgnoreCase("POST")) {
+            String rollno=request.getParameter("rollno"); 
+              Student student = new Student();
+            	  
+              student.setRollno(rollno);
+
+              String message = null;
+              try {
+                  AdminService adminService = new AdminServiceImpl();
+                  message = adminService.deleteStudent(rollno);
+              } catch (ClassNotFoundException | SQLException | CommonException e) {
+                  message =  e.getMessage();
+              }
+              out.println("<p style=\"text-align:center\">"+ message + "</p>");
+              }
+            %>
     </div>
  
 </body>

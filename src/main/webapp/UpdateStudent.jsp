@@ -1,3 +1,8 @@
+<%@page import="com.ncet.lib.entity.Student"%>
+<%@page import="com.ncet.lib.exception.CommonException"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
+<%@page import="com.ncet.lib.service.AdminService"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -80,7 +85,7 @@ button:hover {
 	<jsp:include page="Header.jsp"></jsp:include>
 	<div class="container-update">
 		<h2>Update Student Library Account</h2>
-		<form action="UpdateStudentResult.jsp" method="post">
+		<form action="UpdateStudent.jsp" method="post">
 			<div class="form-group half-width">
 				<label for="rollno">Rollno:</label> <input type="text" id="rollno"
 					name="rollno" required>
@@ -112,6 +117,34 @@ button:hover {
 			<button type="button" onclick="location.href='AdminDashboard.jsp'">Back
 				to Dashboard</button>
 		</form>
+		        <%
+              if(request.getParameter("phno")!=null && request.getParameter("username")!=null && request.getParameter("password")!=null){
+            String rollno=request.getParameter("rollno"); 
+            String name=request.getParameter("name");
+              long phno = Long.parseLong(request.getParameter("phno"));
+              String gmail=request.getParameter("gmail");
+              String username=request.getParameter("username");
+              String password=request.getParameter("password");
+              Student student = new Student();
+            	  
+              student.setName(name);
+              student.setRollno(rollno);
+              student.setPhno(phno);
+              student.setGmail(gmail);
+              student.setUsername(username);
+              student.setPassword(password);
+
+              String message = null;
+              try {
+                  AdminService adminService = new AdminServiceImpl();
+                  message = adminService.updateStudent(rollno, name, phno, gmail, username, password);
+              } catch (ClassNotFoundException | SQLException | CommonException e) {
+                  message = e.getMessage();
+              }
+              out.println("<p style=\"text-align:center\">"+ message + "</p>");
+              }
+           
+            %>
 	</div>
 </body>
 </html>

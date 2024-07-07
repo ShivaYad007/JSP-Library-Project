@@ -70,7 +70,7 @@ color: #4E7800
 						Student Account</a></li>
 				<li><a href="CreateBook.jsp">Create
 						Book</a></li>
-				<li><a href="UpdateBook.jsp" >Update
+				<li><a href="UpdateBookQuantity.jsp" >Update
 						Book</a></li>
 				<li><a href="DeleteBook.jsp">Delete
 						Book</a></li>
@@ -82,7 +82,9 @@ color: #4E7800
 						Book by Author</a></li>
 				<li><a href="SearchBookByNameAndAuthor.jsp">Search
 						Book by Name and Author</a></li>
-						<li><a href="UpdateBookTransactions.jsp">Update Book Transaction
+						<li><a href="IssueBook.jsp">Issue Book
+						</a></li>
+							<li><a href="ReturnBook.jsp">Return Book
 						</a></li>
 			</ul>
 		</nav>

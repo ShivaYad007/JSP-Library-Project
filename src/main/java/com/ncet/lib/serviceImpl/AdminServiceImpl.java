@@ -1,5 +1,7 @@
 package com.ncet.lib.serviceImpl;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,6 +16,7 @@ import com.ncet.lib.entity.Student;
 import com.ncet.lib.exception.CommonException;
 import com.ncet.lib.repo.DBConnectionHelper;
 import com.ncet.lib.service.AdminService;
+import com.ncet.lib.utils.PasswordEncryptor;
 
 public class AdminServiceImpl implements AdminService {
 	Connection connection;
@@ -73,11 +76,11 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public String createStudent(Student student) throws ClassNotFoundException, SQLException {
 		connection = DBConnectionHelper.getConnection();
-		String query = "INSERT INTO student (sId, name, roll_no, phno, department, gmail_id, username, password, year_of_joining, year_of_ending) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String query = "INSERT INTO student (sId, name, roll_no, phno, department, gmail_id, username, password, year_of_joining, year_of_ending,salt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 		int studentByRollno = findStudentByRollno(student.getRollno());
 		String msg = null;
 		if (studentByRollno == 1) {
-			msg = "Student Library Account already present with this rollno " + student.getRollno();
+			msg = "Student Library Account already present with this rollno <b>" + student.getRollno()+"</b>";
 		} else {
 			int id = getNextStudentId();
 			pst = connection.prepareStatement(query);
@@ -88,11 +91,19 @@ public class AdminServiceImpl implements AdminService {
 			pst.setString(5, student.getDepartment());
 			pst.setString(6, student.getGmail());
 			pst.setString(7, student.getUsername());
-			pst.setString(8, student.getPassword());
+			String salt = PasswordEncryptor.generateSalt();
+			String hashedPassword=null;
+			try {
+				hashedPassword = PasswordEncryptor.hashPassword(student.getPassword(), salt);
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				e.printStackTrace();
+			}
+			pst.setString(8, hashedPassword);
 			pst.setInt(9, student.getYearOfJoining());
 			pst.setInt(10, student.getYearOfEnding());
+			pst.setString(11, salt);
 			pst.executeUpdate();
-			msg = "Student Library Account created successfully! with id " + id;
+			msg = "Student Library Account created successfully! with id <b>" + id+"</b>";
 		}
 
 		return msg;
@@ -120,7 +131,7 @@ public class AdminServiceImpl implements AdminService {
 			std.setYearOfEnding(rs.getInt(10));
 			return std;
 		}
-		throw new CommonException("Student Library Account not found with this rollno " + rollno);
+		throw new CommonException("Student Library Account not found with this rollno <b>" + rollno+"</b>");
 	}
 
 	@Override
@@ -128,7 +139,7 @@ public class AdminServiceImpl implements AdminService {
 			throws ClassNotFoundException, SQLException {
 		String msg = "Student Library Account not found with this rollno " + rollno;
 		connection = DBConnectionHelper.getConnection();
-		String query = "UPDATE student SET name = ?, phno = ?, gmail_id = ?, username = ?, password = ? WHERE roll_no = ?";
+		String query = "UPDATE student SET name = ?, phno = ?, gmail_id = ?, username = ?, password = ? ,salt =? WHERE roll_no = ?";
 
 		int studentByRollno = findStudentByRollno(rollno);
 		if (studentByRollno == 1) {
@@ -137,8 +148,17 @@ public class AdminServiceImpl implements AdminService {
 			pst.setLong(2, phno);
 			pst.setString(3, gmail);
 			pst.setString(4, username);
-			pst.setString(5, password);
-			pst.setString(6, rollno);
+			
+			String salt = PasswordEncryptor.generateSalt();
+			String hashedPassword=null;
+			try {
+				hashedPassword = PasswordEncryptor.hashPassword(password, salt);
+			} catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+				e.printStackTrace();
+			}
+			pst.setString(5, hashedPassword);
+			pst.setString(6, salt);
+			pst.setString(7, rollno);
 
 			int rowsUpdated = pst.executeUpdate();
 			if (rowsUpdated > 0) {
@@ -217,12 +237,13 @@ public class AdminServiceImpl implements AdminService {
 	
 	
 	@Override
-	public int findBookByNameAndAuthor(String name, String author) throws ClassNotFoundException, SQLException {
+	public int findBookByNameAndAuthorAndEdition(String name, String author,String edition) throws ClassNotFoundException, SQLException {
 		    connection = DBConnectionHelper.getConnection();
-		    String sql = "SELECT COUNT(*) FROM Book WHERE name = ? AND author = ?";
+		    String sql = "SELECT COUNT(*) FROM Book WHERE name = ? AND author = ? AND edition=?";
 		    pst = connection.prepareStatement(sql);
 		    pst.setString(1, name);
 		    pst.setString(2, author);
+		    pst.setString(3, edition);
 		    ResultSet rs = pst.executeQuery();
 		    int count = 0;
 
@@ -237,10 +258,10 @@ public class AdminServiceImpl implements AdminService {
 	public String createBook(Books book) throws ClassNotFoundException, SQLException {
 		connection = DBConnectionHelper.getConnection();
 		String query = "INSERT INTO book (book_id, name, author, edition, department, quantity) VALUES (?, ?, ?, ?, ?, ?)";
-		int count = findBookByNameAndAuthor(book.getName(),book.getAuthor());
+		int count = findBookByNameAndAuthorAndEdition(book.getName(),book.getAuthor(),book.getEdition());
 		String msg = null;
 		if (count == 1) {
-			msg = "Book already present with name " + book.getName()+" and author "+book.getAuthor();
+			msg = "Book already present with name <b>" + book.getName()+"</b> ,author <b>"+book.getAuthor()+"</b> and edition <b>"+book.getEdition()+"</b>";
 		} else {
 			int id = getNextBookId();
 			pst = connection.prepareStatement(query);
@@ -251,35 +272,14 @@ public class AdminServiceImpl implements AdminService {
 			pst.setString(5, book.getDepartment());
 			pst.setInt(6, book.getQuantity());
 			pst.executeUpdate();
-			msg = "Book added successfully! with id " + id;
+			msg = "Book added successfully! with id <b>" + id+"</b>";
 		}
 		return msg;
 	}
 
-	
-	@Override
-	public String updateBooksQuatnity(String name, String author, int qty) throws ClassNotFoundException, SQLException {
-		connection = DBConnectionHelper.getConnection();
-		String msg = "Book not found with name " + name+", author "+author;
-		 String query = "UPDATE Book SET quantity = ? WHERE name = ? and author =?";
-		int count = findBookByNameAndAuthor(name,author);
-		if (count == 1) {
-			pst = connection.prepareStatement(query);
-			pst.setInt(1, qty);
-			pst.setString(2, name);
-			pst.setString(3, author);
 
-			int rowsUpdated = pst.executeUpdate();
-			if (rowsUpdated > 0) {
-				msg = "Book updated successfully.";
-			} else {
-				msg = "Failed to update Book.";
-			}
-		}
-		return msg;
-	}
 	@Override
-	public String updateBookQuatnity(int book_id, int qty) throws ClassNotFoundException, SQLException {
+	public String updateBookQuantity(int book_id, int qty) throws ClassNotFoundException, SQLException {
 		connection = DBConnectionHelper.getConnection();
 		String msg = null;
 		 String query = "UPDATE Book SET quantity = ? WHERE book_id=?";
@@ -291,7 +291,7 @@ public class AdminServiceImpl implements AdminService {
 			if (rowsUpdated > 0) {
 				msg = "Book updated successfully.";
 			} else {
-				msg = "Book with id "+book_id+" not found";
+				msg = "Book with id <b>"+book_id+"</b> not found";
 			}
 		return msg;
 	}
@@ -398,8 +398,8 @@ public class AdminServiceImpl implements AdminService {
 		    return books;
 	}
 	@Override
-	public String deleteBookByNameAndAuthor(String name, String author) throws ClassNotFoundException, SQLException {
-		int count = findBookByNameAndAuthor(name, author);
+	public String deleteBookByNameAndAuthorAndEdition(String name, String author,String edition) throws ClassNotFoundException, SQLException {
+		int count = findBookByNameAndAuthorAndEdition(name, author,edition);
 		String msg = "Book not found with name " +name+" and author "+author;
 		   String query = "DELETE FROM Book WHERE name = ? and author =?";
 		   
@@ -432,13 +432,13 @@ public class AdminServiceImpl implements AdminService {
 			if (rowsDeleted > 0) {
 				msg = "Book deleted successfully.";
 			} else {
-				msg = "Book not found with book id "+book_id;
+				msg = "Book not found with book id <b>"+book_id+"</b>";
 			}
 		return msg;
 	}
 
 	@Override
-	public String updateBookTransactions(int tid, LocalDate issued_on, String remarks)
+	public String issueBook(int tid, LocalDate issued_on, String remarks)
 			throws ClassNotFoundException, SQLException {
 		connection = DBConnectionHelper.getConnection();
 		String msg = null;
@@ -468,16 +468,52 @@ public class AdminServiceImpl implements AdminService {
 				pst = connection.prepareStatement(bookUpdateQty);
 				pst.setInt(1, tid);
 				pst.executeUpdate();
-				msg = "Book Transactions updated successfully.";
+				msg = "Book with tid : <b>"+tid+"</b> Issued successfully.";
 			} else {
-				msg = "Transaction id "+tid+" already Updated";
+				msg = "Transaction id <b>"+tid+"</b> already Updated";
 			}
 		 }else {
-			 msg="Transaction id "+tid+" not found";
+			 msg="Transaction id <b>"+tid+"</b> not found";
 		 }
 		return msg;
 	}
 
+	@Override
+	public String returnBook(int tid, String remarks) throws ClassNotFoundException, SQLException {
+		connection = DBConnectionHelper.getConnection();
+		String msg = null;
+		String isTidPresent="SELECT COUNT(*) FROM book_transactions WHERE trans_id=?";
+		 String query = "UPDATE book_transactions SET remarks =? WHERE trans_id=? and remarks = 'ISSUED'";
+		 String bookUpdateQty="update book set quantity =quantity+1 where book_id in (select book_id from book_transactions where trans_id=?)";
+			
+		 pst = connection.prepareStatement(isTidPresent);
+		 pst.setInt(1, tid);
+		 ResultSet rs = pst.executeQuery();
+		
+		 int count =0;
+		 if(rs.next()) {
+			 count = rs.getInt(1);
+		 }
+		 if(count==1) {
+		 pst = connection.prepareStatement(query);
+			pst.setString(1, remarks);
+			pst.setInt(2, tid);
+
+			
+			int rowsUpdated = pst.executeUpdate();
+			if (rowsUpdated > 0) {
+				pst = connection.prepareStatement(bookUpdateQty);
+				pst.setInt(1, tid);
+				pst.executeUpdate();
+				msg = "Book with tid : <b>"+tid+"</b> Returned successfully.";
+			} else {
+				msg = "Transaction id <b>"+tid+"</b> already Updated";
+			}
+		 }else {
+			 msg="Transaction id <b>"+tid+"</b> not found";
+		 }
+		return msg;
+	}
 	@Override
 	public Student getStudentByTransId(int tid) throws ClassNotFoundException, SQLException {
 		String query="SELECT * FROM student where sid in (select sid from book_transactions where trans_id =?)";
@@ -501,5 +537,7 @@ public class AdminServiceImpl implements AdminService {
 		}
 		return s;
 	}
+
+
 
 }

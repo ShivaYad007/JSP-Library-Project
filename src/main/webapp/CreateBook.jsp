@@ -1,3 +1,7 @@
+<%@page import="com.ncet.lib.entity.Books"%>
+<%@page import="java.sql.SQLException"%>
+<%@page import="com.ncet.lib.service.AdminService"%>
+<%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
@@ -78,7 +82,7 @@ button:hover {
 	<jsp:include page="Header.jsp"></jsp:include>
 	<div class="container-create">
 		<h2>Create Book</h2>
-		<form action="CreateBookResult.jsp" method="post">
+		<form action="CreateBook.jsp" method="post">
 			<div class="form-group half-width">
 				<label for="name">Name:</label> <input type="text" id="name"
 					name="name" required>
@@ -110,6 +114,31 @@ button:hover {
 			<button type="button" onclick="location.href='AdminDashboard.jsp'">Back
 				to Dashboard</button>
 		</form>
+		<%
+			if (request.getMethod().equalsIgnoreCase("POST")) {
+             
+              String name=request.getParameter("name");
+              String author=request.getParameter("author");
+              String edition = request.getParameter("edition");
+              String department=request.getParameter("department");
+              int qty=Integer.parseInt(request.getParameter("qty"));
+
+              Books book=new Books();
+              book.setName(name);
+              book.setAuthor(author);
+              book.setEdition(edition);
+              book.setDepartment(department);
+              book.setQuantity(qty);
+              String message = null;
+              try {
+                  AdminService adminService = new AdminServiceImpl();
+                  message = adminService.createBook(book);
+              } catch (ClassNotFoundException | SQLException e) {
+                  message =  e.getMessage();
+              }
+              out.println("<p style=\"text-align:center\">" + message + "</p>");
+              }
+            %>
 	</div>
 </body>
 </html>

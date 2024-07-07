@@ -1,3 +1,5 @@
+<%@page import="com.ncet.lib.exception.CommonException"%>
+<%@page import="java.sql.SQLException"%>
 <%@page import="com.ncet.lib.entity.Books"%>
 <%@page import="com.ncet.lib.entity.Student"%>
 <%@page import="java.util.List"%>
@@ -41,6 +43,9 @@ th, td {
 th {
 	background-color: #f2f2f2;
 }
+#col-name{
+width: 180px;
+}
 
 button {
 	padding: 10px 20px;
@@ -65,8 +70,8 @@ button:hover {
 		<h2>Student Library Accounts</h2>
 		<table>
 			<tr>
-				<th>Student ID</th>
-				<th>Name</th>
+				<th>SID</th>
+				<th id="col-name">Name</th>
 				<th>Roll Number</th>
 				<th>Phone Number</th>
 				<th>Department</th>
@@ -77,6 +82,7 @@ button:hover {
 				<th>Year of Ending</th>
 			</tr>
 			<%
+			try{
     AdminService aserv=new AdminServiceImpl();
     List<Student> students=aserv.readAllStudents();
     for(Student student: students){
@@ -95,6 +101,10 @@ button:hover {
 			</tr>
 			<%
 			}
+}
+catch(SQLException | CommonException | ClassNotFoundException e){
+	 out.println("<p style=\"text-align:center\">" + e.getMessage() + "</p>");
+}
 		%>
 		</table>
 		<button type="button" onclick="location.href='AdminDashboard.jsp'">Back

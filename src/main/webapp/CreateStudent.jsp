@@ -1,3 +1,4 @@
+<%@page import="com.ncet.lib.exception.CommonException"%>
 <%@page import="java.sql.SQLException"%>
 <%@page import="com.ncet.lib.serviceImpl.AdminServiceImpl"%>
 <%@page import="com.ncet.lib.service.AdminService"%>
@@ -103,7 +104,7 @@ option:hover:before {
 	<jsp:include page="Header.jsp"></jsp:include>
 	<div class="container-create">
 		<h2>Create Student Library Account</h2>
-		<form id="form-create" action="CreateStudentResult.jsp" method="post">
+		<form id="form-create" action="CreateStudent.jsp" method="post">
 			<div class="form-group half-width">
 				<label for="name">Name:</label> <input type="text" id="name"
 					name="name" required>
@@ -180,6 +181,41 @@ option:hover:before {
 			<button type="button" onclick="location.href='AdminDashboard.jsp'">Back
 				to Dashboard</button>
 		</form>
+		         <%
+            	  
+           if (request.getMethod().equalsIgnoreCase("POST")) {
+            	  
+            String name=request.getParameter("name");
+              String rollno=request.getParameter("rollno");
+              long phno = Long.parseLong(request.getParameter("phno"));
+              String department=request.getParameter("department");
+              String gmail=request.getParameter("gmail");
+              String username=request.getParameter("username");
+              String password=request.getParameter("password");
+              int yearOfJoining = Integer.parseInt(request.getParameter("year_of_joining"));
+              int yearOfEnding = Integer.parseInt(request.getParameter("year_of_ending"));
+              Student student = new Student();
+            	  
+              student.setName(name);
+              student.setRollno(rollno);
+              student.setPhno(phno);
+              student.setDepartment(department);
+              student.setGmail(gmail);
+              student.setUsername(username);
+              student.setPassword(password);
+              student.setYearOfJoining(yearOfJoining);
+              student.setYearOfEnding(yearOfEnding);
+
+              String message = null;
+              try {
+                  AdminService adminService = new AdminServiceImpl();
+                  message = adminService.createStudent(student);
+              } catch (ClassNotFoundException | SQLException | CommonException e) {
+                  message =  e.getMessage();
+              }
+              out.println("<p style=\"text-align:center\">" + message + "</p>");
+              }
+            %>
 	</div>
 </body>
 </html>

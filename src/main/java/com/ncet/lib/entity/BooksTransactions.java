@@ -15,9 +15,6 @@ public class BooksTransactions {
     private Book book;
     private LocalDate issuedOn;
     private LocalDate endOn;
-    private Remarks remarks;
-    // Enum for Remarks
-    public enum Remarks {
-        ISSUED
-    }
+    private String remarks;
+  
 }
